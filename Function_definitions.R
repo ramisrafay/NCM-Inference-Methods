@@ -448,168 +448,62 @@ depth_profile_ncm <- function(ps_local, ps_source, samplesizes, reps){
 }
 
 
-
-# Visualization code ####
-plot_occupancy <- function(ndf_w_preds, post_mbm, title){
-  require(ggplot2)
+# # Scenario 3 plotting function #
+vis_scenario_3 <- function(s3res, local_samples, NTm_sim, legend = T){
+  # Inputs: 
+  # s3res: scenario 3 dataframe 
+  # local_samples: visualize for this number of local community samples
+  # NTm_sim: Input ground-truth NTm value for simulation 
+  # legend: if TRUE, include legend for inference methods 
   
-  if(post_mbm){
-    category_colours <- c("growing" = "#1b9e7790", "non-growing" = "#7570b390")
-    p <-  ggplot(ndf_w_preds) + aes(x = source_abundance * 100) +
-      geom_point(aes(y = target_frequency * 100, colour = growth_category)) + 
-      geom_line(aes(y = predicted_freq * 100), colour = "#000000") +
-      geom_line(aes(y = pred_LL * 100), color = "#00000070", linetype = "dashed") +
-      geom_line(aes(y = pred_UL * 100), color = "#00000070", linetype = "dashed") + 
-      coord_trans(x = "log") + scale_x_continuous(breaks = c(1E-5, 1E-4, 1E-3, 1E-2, 1E-1, 1, 10), 
-                                                  labels = c("0.00001", "0.0001", "0.001", "0.01", "0.1", "1", "10")) + 
-      xlab("Mean Relative Abundance (%)") + ylab("Sample Occurrence Frequency (%)") + ylim(c(0, 100)) + 
-      theme_bw() + ggtitle(title) + scale_color_manual(values = category_colours)
-  } else {
-    ndf_w_preds$pred_category <- rep("neutral", dim(ndf_w_preds)[1])
-    ndf_w_preds$pred_category[ndf_w_preds$target_frequency < ndf_w_preds$pred_LL] <- "selected against"
-    ndf_w_preds$pred_category[ndf_w_preds$target_frequency > ndf_w_preds$pred_UL] <- "selected for"
-    pred_colours <- c("neutral" = "#858383CC", "selected against" = "#440154CC", "selected for" = "#55C667CC")
-    p <-  ggplot(ndf_w_preds) + aes(x = source_abundance * 100) +
-      geom_point(aes(y = target_frequency * 100), colour = "#85838380") + 
-      geom_line(aes(y = predicted_freq * 100), colour = "#000000") +
-      geom_line(aes(y = pred_LL * 100), color = "#00000070", linetype = "dashed") +
-      geom_line(aes(y = pred_UL * 100), color = "#00000070", linetype = "dashed") + 
-      coord_trans(x = "log") + scale_x_continuous(breaks = c(1E-5, 1E-4, 1E-3, 1E-2, 1E-1, 1, 10), 
-                                                  labels = c("0.00001", "0.0001", "0.001", "0.01", "0.1", "1", "10")) + 
-      xlab("Mean Relative Abundance (%)") + ylab("Sample Occurrence Frequency (%)") + ylim(c(0, 100)) +
-      #scale_color_manual(values = pred_colours) + 
-      theme_bw() + ggtitle(title)
-  } 
-  
-  return(p)
-}
-
-plot_variance <- function(ndf_w_preds, post_mbm, title){
-  require(ggplot2)
-  
-  if(post_mbm){
-    category_colours <- c("growing" = "#1b9e7790", "non-growing" = "#7570b390")
-    p <-  ggplot(ndf_w_preds) + aes(x = source_abundance) +
-      geom_point(aes(y = target_variance, colour = growth_category)) + 
-      geom_line(aes(y = predicted_var), colour = "#000000") +
-      geom_line(aes(y = predvar_LL), color = "#000000BB", linetype = "dashed") +
-      geom_line(aes(y = predvar_UL), color = "#000000BB", linetype = "dashed") +
-      scale_y_log10() + 
-      coord_trans(x = "log") + scale_x_continuous(breaks = c(1E-5, 1E-4, 1E-3, 1E-2, 1E-1, 1, 10), 
-                                                  labels = c("0.00001", "0.0001", "0.001", "0.01", "0.1", "1", "10")) + 
-      xlab("Mean Relative Abundance (%)") + ylab("Variance in relative abundance in target") + 
-      theme_bw() + ggtitle(title) + scale_color_manual(values = category_colours)
-  } else {
-    ndf_w_preds$pred_category <- rep("neutral", dim(ndf_w_preds)[1])
-    ndf_w_preds$pred_category[ndf_w_preds$target_variance < ndf_w_preds$predvar_UL] <- "selected against"
-    ndf_w_preds$pred_category[ndf_w_preds$target_variance > ndf_w_preds$predvar_LL] <- "selected for"
-    pred_colours <- c("neutral" = "#858383CC", "selected against" = "#440154CC", "selected for" = "#55C667CC")
-    
-    p <-  ggplot(ndf_w_preds) + aes(x = source_abundance) +
-      geom_point(aes(y = target_variance), color = "#858383CC") + #, colour = pred_category)) +
-      #scale_color_manual(values = pred_colours) + 
-      geom_line(aes(y = predicted_var), colour = "#000000") +
-      geom_line(aes(y = predvar_LL), color = "#000000BB", linetype = "dashed") +
-      geom_line(aes(y = predvar_UL), color = "#000000BB", linetype = "dashed") +
-      scale_y_log10(limits = c(1E-9, 1E-2), n.breaks = 8) + 
-      coord_trans(x = "log") + scale_x_continuous(breaks = c(1E-5, 1E-4, 1E-3, 1E-2, 1E-1, 1, 10), 
-                                                  labels = c("0.00001", "0.0001", "0.001", "0.01", "0.1", "1", "10")) + 
-      xlab("Mean Relative Abundance in source (%)") + ylab("Variance in relative abundance in target") + 
-      theme_bw() + ggtitle(title)
-  } 
-  
-  return(p)
-}
-
-
-# # Heatmap plotting function 
-# plot_heatmap_sims <- function(vis, Ntm_sim, filename){
-#   vis <- vis[vis$Input_NTm == Ntm_sim, ]
-#   
-#   p <- ggplot(data = vis, 
-#               aes(x = x_coord, y = y_coord, z = f_NTm)) +
-#     scale_y_continuous(trans = "log10",
-#                        breaks = breaks_log(base = 10),
-#                        labels = label_log(base = 10),
-#                        expand = c(0,0)) +
-#     scale_x_continuous(trans = "log10",
-#                        breaks = breaks_log(base = 10, n = 4),
-#                        labels = label_log(base = 10),
-#                        expand = c(0,0)) +
-#     annotation_logticks(base = 10, outside = T, scaled = T, sides = "lb",
-#                         short = unit(0.05, "cm"), mid = unit(0.05, "cm"), 
-#                         long = unit(0.1, "cm")) +
-#     coord_cartesian(clip = "off") +
-#     geom_tile(aes(fill = f_NTm)) +
-#     scale_fill_gradient2(low = "blue", mid = "white", high = "red", midpoint = Ntm_sim,
-#                          limits = c(0, Ntm_sim*2), breaks = seq(0, Ntm_sim*2, Ntm_sim/4),
-#                          name = expression(inferred~N[T]*'m'),
-#                          oob = squish) +
-#     geom_hline(yintercept = Ntm_sim, linetype = "dashed", size = 1, color = "#000000") +
-#     xlab("Number of samples") +
-#     ylab("Sample depth (reads per sample)") +
-#     theme_bw() + theme(legend.key.height = unit(1, "cm"))
-#   
-#   if(!is.null(filename)) ggsave(file = filename, plot = p, width = 550*4, height = 350*4, units = "px")
-#   
-#   return(p)
-# }
-# 
-# # Scenario 3 plotting function 
-# vis_scenario_3 <- function(s3res, target_samples, NTm_sim, legend = T){
-#   s3 <- s3res[s3res$target_samples == target_samples & s3res$Input_NTm == NTm_sim, ]
-#   
-#   s <- data.frame(fitted_ntm = c(s3$NTm_occ, s3$NTm_var, s3$NTm_LL),
-#                   fitted_ntm_sd = c(s3$NTm_occ_sd, s3$NTm_var_sd, s3$NTm_LL_sd),
-#                   sample_size = rep(s3$sample_size, 3),
-#                   alpha_deviation = rep(s3$alpha_deviation, 3),
-#                   method = c(rep("occupancy", length(s3$NTm_occ)), 
-#                              rep("variance", length(s3$NTm_var)), 
-#                              rep("DM-LL", length(s3$NTm_LL)))
-#   )
-#   
-#   s$method <- factor(s$method, levels = c("occupancy", "variance", "DM-LL"))
-#   s$alpha_deviation <- format(s$alpha_deviation, scientific = T)
-#   s$category <- factor(paste0("σ = ", s$alpha_deviation),
-#                        levels = c("σ = 0e+00", "σ = 5e-05", "σ = 5e-04", "σ = 5e-03"),
-#                        labels = c("σ = 0", "σ = 5E-05", "σ = 5E-04", "σ = 5E-03"))
-#   
-#   p <- ggplot(s, aes(x = sample_size, y = fitted_ntm)) + 
-#     geom_line(aes(color = method), size = 0.75) + 
-#     geom_point(aes(color = method), size = 1) + 
-#     geom_errorbar(aes(ymax = fitted_ntm + fitted_ntm_sd, ymin = fitted_ntm - fitted_ntm_sd, color = method), width = 0) +
-#     #annotate("rect", xmin = 1e2, xmax = 1e5, ymin = 0.9*NTm_sim, ymax = 1.1*NTm_sim, fill = "#1db20040") +
-#     #annotate("rect", xmin = 1e2, xmax = 1e5, ymin = 0.5*NTm_sim, ymax = 1.5*NTm_sim, fill = "#e0db0040") +
-#     
-#     scale_color_manual(values = c("occupancy" = "#C00000", "variance" = "#156082", "DM-LL" = "#CE4ABE")) +
-#     # scale_fill_manual(values = c("occupancy" = "#C0000070", "variance" = "#15608270", "DM-LL" = "#CE4ABE70")) +
-#     
-#     scale_x_continuous(trans = "log10",
-#                        breaks = breaks_log(base = 10),
-#                        labels = label_log(base = 10)) + 
-#     scale_y_continuous(trans = "log10",
-#                        breaks = breaks_log(base = 10, n = 6),
-#                        labels = label_log(base = 10),
-#                        limits = c(1E1, 1E13)) +
-#     coord_cartesian(ylim = c(1e1, 1e6)) + 
-#     annotation_logticks(base = 10, outside = T, scaled = T, sides = "bl",
-#                         short = unit(0.05, "cm"), mid = unit(0.05, "cm"), 
-#                         long = unit(0.1, "cm")) +
-#     facet_wrap(~category, scales = 'free_y', nrow = 1) + 
-#     geom_hline(yintercept = NTm_sim, linetype = "dashed", color = "#000000", size = 0.75) +
-#     
-#     labs(x = "sample depth (reads per sample)", 
-#          y = expression(inferred~N[T]*'m'),
-#          color = "Inference method") +
-#     guides(fill = "none") + 
-#     theme_bw()
-#   
-#   if(!legend){
-#     p <- p + theme(legend.position = "none")
-#   }
-#   
-#   return(p)
-# }
+   s3 <- s3res[s3res$local_samples == local_samples & s3res$Input_NTm == NTm_sim, ]
+   
+   s <- data.frame(fitted_ntm = c(s3$NTm_occ, s3$NTm_var, s3$NTm_LL),
+                   fitted_ntm_sd = c(s3$NTm_occ_sd, s3$NTm_var_sd, s3$NTm_LL_sd),
+                   sample_size = rep(s3$sample_size, 3),
+                   alpha_deviation = rep(s3$alpha_deviation, 3),
+                   method = c(rep("occupancy", length(s3$NTm_occ)), 
+                              rep("variance", length(s3$NTm_var)), 
+                              rep("DM-LL", length(s3$NTm_LL)))
+   )
+   
+   s$method <- factor(s$method, levels = c("occupancy", "variance", "DM-LL"))
+   s$alpha_deviation <- format(s$alpha_deviation, scientific = T)
+   s$category <- factor(paste0("σ = ", s$alpha_deviation),
+                        levels = c("σ = 0e+00", "σ = 5e-05", "σ = 5e-04", "σ = 5e-03"),
+                        labels = c("σ = 0", "σ = 5E-05", "σ = 5E-04", "σ = 5E-03"))
+   
+   p <- ggplot(s, aes(x = sample_size, y = fitted_ntm)) + 
+     geom_line(aes(color = method), size = 0.75) + 
+     geom_point(aes(color = method), size = 1) + 
+     geom_errorbar(aes(ymax = fitted_ntm + fitted_ntm_sd, ymin = fitted_ntm - fitted_ntm_sd, color = method), width = 0) +
+     scale_color_manual(values = c("occupancy" = "#C00000", "variance" = "#156082", "DM-LL" = "#CE4ABE")) + 
+     scale_x_continuous(trans = "log10",
+                        breaks = breaks_log(base = 10),
+                        labels = label_log(base = 10)) + 
+     scale_y_continuous(trans = "log10",
+                        breaks = breaks_log(base = 10, n = 6),
+                        labels = label_log(base = 10),
+                        limits = c(1E1, 1E13)) +
+     coord_cartesian(ylim = c(1e1, 1e6)) + 
+     annotation_logticks(base = 10, outside = T, scaled = T, sides = "bl",
+                         short = unit(0.05, "cm"), mid = unit(0.05, "cm"), 
+                         long = unit(0.1, "cm")) +
+     facet_wrap(~category, scales = 'free_y', nrow = 1) + 
+     geom_hline(yintercept = NTm_sim, linetype = "dashed", color = "#000000", size = 0.75) +
+     
+     labs(x = "sample depth (reads per sample)", 
+          y = expression(inferred~N[T]*'m'),
+          color = "Inference method") +
+     guides(fill = "none") + 
+     theme_bw()
+   
+   if(!legend){
+     p <- p + theme(legend.position = "none")
+   }
+   
+   return(p)
+ }
 
 
 # Define function for running simulations over parameter space ####
@@ -645,10 +539,10 @@ sample_and_fit_NCMs <- function(params, true_source, s = 1, method = "occupancy"
   
   if(method == "loglikelihood"){
     outputs <- c("f_NTm", "f_NTm_sd", 
-                 "sample_size", "Input_NTm", "target_samples", "source_samples", "shared species")
+                 "sample_size", "Input_NTm", "local_samples", "source_samples", "shared species")
   } else {
     outputs <- c("f_NTm", "f_NTm_LL", "f_NTm_UL", "Rsq", "f_NTm_sd", "f_NTm_LL_sd", "f_NTm_UL_sd", "Rsq_sd", 
-                 "sample_size", "Input_NTm", "target_samples", "source_samples", "shared species")
+                 "sample_size", "Input_NTm", "local_samples", "source_samples", "shared species")
   }
   
   sim_ncm_results <- data.frame(matrix(nrow = nsims, ncol = length(outputs)))
@@ -663,12 +557,12 @@ sample_and_fit_NCMs <- function(params, true_source, s = 1, method = "occupancy"
     ## 1. Select values for params
     Ns            <- round(params$samplesize[i])
     if(sample_source) source_samps <- round(params$n_source[i]) else source_samps <- NA
-    target_samps  <- round(params$n_target[i])
+    local_samps  <- round(params$n_local[i])
     #m_true_sim  <- calc_true_m(m_hat_sim, NT, Ns) # in case m is modelled instead of Ntm
     NTm_sim       <- params$sim_ntm[i]
     
     for(rep in 1:reps){
-      # 2. Neutral assembly for true target community
+      # 2. Neutral assembly for true local community
       assemblies <- if(sample_source) max(params$n_source) else 100 # source community assemblies to make
       AS_sim  <- rdirichlet(n = assemblies, alpha = NTm_sim*iww_rel) # generate assembly
       
@@ -692,11 +586,11 @@ sample_and_fit_NCMs <- function(params, true_source, s = 1, method = "occupancy"
         iww_otu[1, ] <- iww_rel
       }
       
-      # Target
-      inds <- sample(1:assemblies, target_samps, replace = F) # randomly pick from instances of assemblies
-      as_otu <- data.frame(matrix(nrow = target_samps, ncol = ncol(AS_sim)))
+      # local
+      inds <- sample(1:assemblies, local_samps, replace = F) # randomly pick from instances of assemblies
+      as_otu <- data.frame(matrix(nrow = local_samps, ncol = ncol(AS_sim)))
       
-      for(j in 1:target_samps){
+      for(j in 1:local_samps){
         ind <- inds[j] # pick assembly instance to sample from
         AS_comm <- AS_sim[ind, ] # pick one of the assemblies
         as_samp <- rmultinom(n = 1, size = Ns, prob = AS_comm) # draw abundance data
@@ -705,7 +599,7 @@ sample_and_fit_NCMs <- function(params, true_source, s = 1, method = "occupancy"
       
 
       ## 5. Create NCM input data frame
-      neutral_data <- NCM_sample_prep_sim(samplesize = Ns, target = as_otu, source = iww_otu, 
+      neutral_data <- NCM_sample_prep_sim(samplesize = Ns, local = as_otu, source = iww_otu, 
                                           correction = F, verbose = F, meta = F)
       
       ## 6. Fit NCM 
@@ -719,7 +613,7 @@ sample_and_fit_NCMs <- function(params, true_source, s = 1, method = "occupancy"
 
 
       } else if(method == "loglikelihood"){
-        ncm_res <- fit_DMLL(neutral_data = neutral_data, target = as_otu, 
+        ncm_res <- fit_DMLL(neutral_data = neutral_data, local = as_otu, 
                               N = Ns, plot = F)
         fits <- ncm_res$maximum 
         }
@@ -737,10 +631,10 @@ sample_and_fit_NCMs <- function(params, true_source, s = 1, method = "occupancy"
     inference_sds   <- apply(inferences, MARGIN = 2, sd)
     
     if(method == "loglikelihood"){
-      res <- c(inference_means, inference_sds, Ns, NTm_sim, target_samps,
+      res <- c(inference_means, inference_sds, Ns, NTm_sim, local_samps,
                source_samps, dim(neutral_data$neutral_df)[1]) |> unlist()
     } else {
-      res <- c(unname(inference_means), unname(inference_sds), Ns, NTm_sim, target_samps,
+      res <- c(unname(inference_means), unname(inference_sds), Ns, NTm_sim, local_samps,
                source_samps, dim(neutral_data$neutral_df)[1]) |> unlist()
     }
     
@@ -810,7 +704,7 @@ sample_and_fit_non_neutral_NCMs <- function(params, true_source, s = 1, sample_s
   sim_ncm_results <- data.frame(matrix(nrow = nsims, ncol = 11))
   colnames(sim_ncm_results) <- c("NTm_occ", "NTm_occ_sd", "NTm_var", "NTm_var_sd",
                                  "NTm_LL", "NTm_LL_sd","sample_size", "Input_NTm", 
-                                 "target_samples", "source_samples", "alpha_deviation")
+                                 "local_samples", "source_samples", "alpha_deviation")
   
   seeds <- 1:(nsims*reps)
   
@@ -821,11 +715,11 @@ sample_and_fit_non_neutral_NCMs <- function(params, true_source, s = 1, sample_s
     ## 1. Select values for params
     Ns            <- round(params$samplesize[i])
     if(sample_source) source_samps <- round(params$n_source[i]) else source_samps <- NA
-    target_samps  <- round(params$n_target[i])
+    local_samps  <- round(params$n_local[i])
     NTm_sim       <- params$sim_ntm[i]
     
     for(rep in 1:reps){
-      ## 2. Neutral assembly for true target community
+      ## 2. Neutral assembly for true local community
       assemblies <-  100 # source community assemblies to make
       AS_sim  <- rdirichlet(n = assemblies, alpha = NTm_sim*iww_rel) # generate neutral assembly
       
@@ -858,11 +752,11 @@ sample_and_fit_non_neutral_NCMs <- function(params, true_source, s = 1, sample_s
         iww_otu[1, ] <- iww_rel
       }
       
-      # Target
-      inds <- sample(1:assemblies, target_samps, replace = F) # randomly pick from instances of assemblies
-      as_otu <- data.frame(matrix(nrow = target_samps, ncol = ncol(AS_sim)))
+      # local
+      inds <- sample(1:assemblies, local_samps, replace = F) # randomly pick from instances of assemblies
+      as_otu <- data.frame(matrix(nrow = local_samps, ncol = ncol(AS_sim)))
       
-      for(j in 1:target_samps){
+      for(j in 1:local_samps){
         ind <- inds[j] # pick assembly instance to sample from
         AS_comm <- AS_sim[ind, ] # pick one of the assemblies
         
@@ -871,7 +765,7 @@ sample_and_fit_non_neutral_NCMs <- function(params, true_source, s = 1, sample_s
       }
       
       ## 5. Create NCM input data frame
-      neutral_data <- NCM_sample_prep_sim(samplesize = Ns, target = as_otu, source = iww_otu, 
+      neutral_data <- NCM_sample_prep_sim(samplesize = Ns, local = as_otu, source = iww_otu, 
                                           correction = T, verbose = F, meta = F)
 
       ## 6. Fit NCM 
@@ -884,7 +778,7 @@ sample_and_fit_non_neutral_NCMs <- function(params, true_source, s = 1, sample_s
       fitvar <- ncm_var$fitting_results[1]
         
       # Multinomial Dirichlet
-      ncm_LL <- fit_DMLL(neutral_data = neutral_data, target = as_otu, N = Ns, plot = F)
+      ncm_LL <- fit_DMLL(neutral_data = neutral_data, local = as_otu, N = Ns, plot = F)
       fitLL <- ncm_LL$maximum 
         
       if(rep == 1) i_occ <- i_var <- i_LL <- numeric(10)
@@ -896,7 +790,7 @@ sample_and_fit_non_neutral_NCMs <- function(params, true_source, s = 1, sample_s
     
     ## 7. compile results
     res <- c(mean(i_occ), sd(i_occ), mean(i_var), sd(i_var), mean(i_LL), sd(i_LL), 
-             Ns, NTm_sim, target_samps, source_samps, alpha_deviation)
+             Ns, NTm_sim, local_samps, source_samps, alpha_deviation)
     
     
     ## 8. Save results 

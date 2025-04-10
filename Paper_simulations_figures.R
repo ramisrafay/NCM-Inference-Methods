@@ -144,8 +144,8 @@ Ns <- round(logspace(log10(64000), log10(500), 10))
 
 
 zheng_results <- depth_profile_ncm(ps_local = zheng_local, ps_source = zheng_source, 
-                                       samplesizes = round(logspace(log10(90000), log10(500), 10)), 
-                                       reps = 10)
+                                   samplesizes = round(logspace(log10(90000), log10(500), 10)), 
+                                   reps = 10)
 
 # Visualize 
 Fig5 <- ggplot(zheng_results, aes(x = sample_size, y = fit)) + 

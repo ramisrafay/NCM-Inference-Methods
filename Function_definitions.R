@@ -223,11 +223,11 @@ NCM_sample_prep_sim <- function(samplesize, local, source, correction = F,
 
 # Functions used to fit NCM # 
 # Occupancy-based fitting method
-fit_occ <- function(samplesize, neutral_data, remove_ones = F){
+fit_occ <- function(samplesize, neutral_data, remove_ones = T){
   # Inputs #
   # samplesize: otherwise called Ns in this code, read depth (# of reads in each sample) used to normalize the abundance tables
   # neutral_data: the list output from NCM_sample_prep()
-  # remove_ones: if TRUE, does not infer NTm for species that have occupancies of 1
+  # remove_ones: if TRUE, does not include taxa that have occupancies of 1 for NTm inference
 
   # Outputs #
   # A list with the following elements: 

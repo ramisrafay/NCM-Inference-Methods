@@ -44,8 +44,8 @@ NCM_sample_prep <- function(samplesize, ps_local, ps_source, correction = F,
   ra_source <- transform_sample_counts(ps_source, function(x) x/sum(x))
   
   # get abundance tables from phyloseq object
-  localtable <- as.data.frame(otu_table(ra_local))
-  sourcetable <- as.data.frame(otu_table(ra_source))
+  localtable <- as.matrix(otu_table(ra_local))
+  sourcetable <- as.matrix(otu_table(ra_source))
   
   if(meta){
     sourcetable <- localtable
@@ -146,8 +146,8 @@ NCM_sample_prep_sim <- function(samplesize, local, source, correction = F,
   ra_source <- t(apply(source, 1, function(x) x/sum(x)))
   
   # get abundance tables from phyloseq object
-  localtable <- as.data.frame(ra_local)
-  sourcetable <- as.data.frame(ra_source)
+  localtable <- as.matrix(ra_local)
+  sourcetable <- as.matrix(ra_source)
   
   if(meta){
     sourcetable <- localtable 
@@ -437,7 +437,7 @@ depth_profile_ncm <- function(ps_local, ps_source, samplesizes, reps){
                                      lower = ncm_var$fitting_results[2], shared_species = neutral_data$summary[1], 
                                      sample_size = samplesizes[R], source_samples = nsamples(source_rare),
                                      local_samples = nsamples(local_rare), method = "variance"))
-      ncm_LL  <- fit_DMLL(neutral_data = neutral_data, local = as.data.frame(otu_table(local_rare)), N = samplesizes[R], plot = F)
+      ncm_LL  <- fit_DMLL(neutral_data = neutral_data, local = as.matrix(otu_table(local_rare)), N = samplesizes[R], plot = F)
       results <- rbind(results, list(fit = ncm_LL$maximum, upper = NA, 
                                      lower = NA, shared_species = neutral_data$summary[1], 
                                      sample_size = samplesizes[R], source_samples = nsamples(source_rare), 

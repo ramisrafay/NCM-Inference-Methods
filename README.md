@@ -2,7 +2,12 @@
 This is companion code for the manuscript "How to quantify immigration from community abundance data using the Neutral Community Model", by Ramis Rafay, Eric Jones, David Sivak, and Jane Fowler.
 
 # Steady state simulations and functions for inferring immigration rates
-Code for fitting the neutral community models to abundance/sequence datasets and inferring immigration rates are available as R scripts. Running "Paper_simulations_figures.R" reproduces figures 1-4 in the main manuscript. 
+Code for fitting the neutral community models to abundance/sequence datasets and inferring immigration rates are available as R scripts. Running "Paper_simulations_figures.R" reproduces figures 1-5 in the main manuscript (Ensure that "Function_definitions.R" is also present in your working directory). 
+
+To fit the three inference methods to sequence or abundance data, 
+
+R code written by Ramis Rafay (ramisrafay@gmail.com) -- email if you have
+any questions.
 
 # Dynamic simulations 
 The file dynamic_NCM_simulations_cleaned_EJ.py contains python code (version 3.13.5) to perform dynamic simulations of the Neutral Community Model (NCM).

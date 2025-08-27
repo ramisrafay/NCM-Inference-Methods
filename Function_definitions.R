@@ -282,11 +282,12 @@ fit_occ <- function(samplesize, neutral_data, remove_ones = T){
 }
 
 # Variance-based fitting method (accounts for multinomial sampling variance)
-fit_var <- function(samplesize, neutral_data){
+fit_var <- function(samplesize, neutral_data, meta = F){
   # Inputs #
   # samplesize: read depth (# of reads in each sample) used to normalize the abundance tables, shorthand as 'Ns' in this function
   # neutral_data: the list output from NCM_sample_prep()
-  
+  # meta: focuses the inference on the 50%-95% percentile in source community abundances, as otherwise the fit was strongly influenced by the 5% most abundant taxa 
+
   # Outputs #
   # A list with the following elements: 
   # $fitting_results: fitted coefficients with confidence intervals
@@ -301,14 +302,26 @@ fit_var <- function(samplesize, neutral_data){
   ndf <- neutral_data$neutral_df  # Data frame containing data for NCM fitting 
   Ns <- samplesize                # Sample depth 
   d <- 1/Ns                       # detection limit 
-  freq <- ndf$local_frequency     # local community sample occupancies/occurrence frequencies
+  var <- ndf$target_variance      # local community relative abundance variances 
   p <- ndf$source_abundance       # source community abundances
+
+    
+  if(meta){
+    q2 <- quantile(p, 0.50)
+    q3 <- quantile(p, 0.95)
+    p_focus <- which(p > q2 & p < q3)
+    varf <- var[p_focus]
+    pf <- p[p_focus]
+    } else {
+    pf <- p
+    varf <- var
+  }
   
   print(paste("fitting params: sample size =", Ns, ", d =", d))
   
   # Fit NCM using the variance-based method
-  m.fit <- nlsLM(var ~ (p*(1-p)/((Nsm + 1)) + (p*(1-p)/(Ns))),
-                 lower = 0, start = list(Nsm = 1))
+  m.fit <- nlsLM(varf ~ (pf*(1-pf)/(Nsm + 1)) + (pf*(1-pf)/(Ns)),
+                       lower = 0, start = list(Nsm = 1))
   
   reg <- coef(m.fit)
   conf <- confint(m.fit)
@@ -404,7 +417,7 @@ fit_DMLL <- function(neutral_data, local, samplesize, plot = F, maxNTm = 1E12){
 }
 
 
-depth_profile_ncm <- function(ps_local, ps_source, samplesizes, reps){
+depth_profile_ncm <- function(ps_local, ps_source, samplesizes, reps, metacommunity = F){
   # Inputs #
   # samplesizes: vector of read depths (# of reads in each sample) used to normalize the abundance tables
   # ps_local: subsetted phyloseq object with abundance table for the local/island community normalized to 'samplesize' 
@@ -412,6 +425,7 @@ depth_profile_ncm <- function(ps_local, ps_source, samplesizes, reps){
   # plot: If TRUE, plots the likelihood function against NTm with the maximum likelihood estimate
   # maxNTm: Maximum value for NTm in search space, reduce if computation takes too long and if there is reason to suspect upper limit is much lower
   # reps: number of repetitions for each read depth in 'samplesizes'
+  # metacommunity: IF True, inferring NTm from a metacommunity. Makes some minor changes to 
   
   # Outputs #
   # A data frame with the results of NTm inference sample depth profiling with estimates from the occupancy, 
@@ -432,7 +446,7 @@ depth_profile_ncm <- function(ps_local, ps_source, samplesizes, reps){
                                      lower = ncm_occ$fitting_results[2], shared_species = neutral_data$summary[1], 
                                      sample_size = samplesizes[R], source_samples = nsamples(source_rare),
                                      local_samples = nsamples(local_rare), method = "occupancy"))
-      ncm_var <- fit_var(samplesize = samplesizes[R], neutral_data = neutral_data, m_only = F)
+      ncm_var <- fit_var(samplesize = samplesizes[R], neutral_data = neutral_data, m_only = F, meta = metacommunity)
       results <- rbind(results, list(fit = ncm_var$fitting_results[1], upper = ncm_var$fitting_results[3], 
                                      lower = ncm_var$fitting_results[2], shared_species = neutral_data$summary[1], 
                                      sample_size = samplesizes[R], source_samples = nsamples(source_rare),
@@ -800,4 +814,5 @@ sample_and_fit_non_neutral_NCMs <- function(params, true_source, s = 1, sample_s
   
   return(sim_ncm_results)
 }
+
 

@@ -137,7 +137,11 @@ s3_results <- rbind(s3_results_1, s3_results_2,
 Fig_4 <- vis_scenario_3(s3_results, 10, 500, T) # see function definitions file for 'vis_scenario_3' 
 
 # # Zheng et al dataset inference ####
-# ps_zheng <- readRDS("ps_zheng2019.RDS") # this is a phyloseq object 
+# REF: Zheng, W., & Wen, X. (2019). How exogenous influent communities and environmental 
+# conditions affect activated sludge communities in the membrane bioreactor of a 
+# wastewater treatment plant. Science of the Total Environment, 692, 622–630. 
+
+# ps_zheng <- readRDS("ps_zheng2019.RDS") # this is a phyloseq object
 zheng_source <- subset_samples(ps_zheng, sample_type == "IWW")
 zheng_local <- subset_samples(ps_zheng, sample_type == "AS")
 Ns <- round(logspace(log10(64000), log10(500), 10))
@@ -148,7 +152,7 @@ zheng_results <- depth_profile_ncm(ps_local = zheng_local, ps_source = zheng_sou
                                    reps = 10)
 
 # Visualize 
-Fig5 <- ggplot(zheng_results, aes(x = sample_size, y = fit)) + 
+Fig5_1 <- ggplot(zheng_results, aes(x = sample_size, y = fit)) + 
   geom_line(aes(color = method), size = 0.75, alpha = 0.7) +
   geom_point(aes(color = method), size = 2, shape = 21) + 
   geom_errorbar(aes(ymax = upper, ymin = lower, color = method), width = 0) +
@@ -172,6 +176,42 @@ Fig5 <- ggplot(zheng_results, aes(x = sample_size, y = fit)) +
          color = "none") +
   theme(axis.title.x = element_blank()) + 
   theme_bw()
+
+# # Condit et al dataset inference #### 
+# REF: Condit et. al 2002. Beta-diversity in tropical forest trees. Science 295:666-669
+# save abundance data and sample metadata as phyloseq object for convenience 
+# ps_condit_bci <- readRDS("ps_condit2002.RDS") # 
+# This is an example of sampling a metacommunity, and so the same set of samples are used for both the local and source communities
+condit_results <- depth_profile_ncm(ps_local = ps_condit_bci, ps_source = ps_condit_bci, 
+                              samplesizes = seq(40, 400, 40), reps = 10, metacommunity = T)
+
+# Visualize 
+Fig5_2 <- ggplot(condit_results, aes(x = sample_size, y = fit)) + 
+  geom_line(aes(color = method), size = 0.75, alpha = 0.7) +
+  geom_point(aes(color = method), size = 2, shape = 21) + 
+  geom_errorbar(aes(ymax = upper, ymin = lower, color = method), width = 0) +
+  scale_color_manual(values = c("occupancy" = "#C00000", "variance" = "#156082", "DM-LL" = "#CE4ABE")) +
+  scale_fill_manual(values = c("occupancy" = "#C0000050", "variance" = "#15608250", "DM-LL" = "#CE4ABE50")) +
+  scale_x_continuous(limits = c(0, 500),
+                     breaks = seq(0, 500, 100)) +
+  scale_y_continuous(trans = "log10",
+                     breaks = breaks_log(base = 10, n = 6),
+                     labels = label_log(base = 10),
+                     limits = c(1E1, 1E6)) +
+  annotation_logticks(base = 10, outside = T, scaled = T, sides = "bl",
+                      short = unit(0.05, "cm"), mid = unit(0.05, "cm"), 
+                      long = unit(0.1, "cm")) +
+  labs(y = expression(inferred~N[T]*'m'),
+       x = "Read depth R",
+       color = "method") +
+  guides(fill = "none",
+         color = "none") +
+  theme(axis.title.x = element_blank()) + 
+  theme_bw() 
+
+# Combine for figure 5 using the package 'patchwork'
+Fig5 <- Fig5_1 | Fig5_2
+
 
 
 

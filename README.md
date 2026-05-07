@@ -1,5 +1,8 @@
 # How to quantify immigration from community abundance data using the Neutral Community Model 
-This is companion code for the manuscript "How to quantify immigration from community abundance data using the Neutral Community Model", by Ramis Rafay, Eric Jones, David Sivak, and Jane Fowler.
+This is companion code for the manuscript "How to quantify immigration from community abundance data using the Neutral Community Model", by Ramis Rafay, Eric Jones, David Sivak, and Jane Fowler. 
+
+If you use our methods and/or code, please cite the following work: 
+Rafay, R., Jones, E.W., Sivak, D.A., Fowler, S.J., 2026. How to quantify immigration from community abundance data using the Neutral Community Model. Proc. Natl. Acad. Sci. 123, e2508689123.
 
 # 6th June 2026 Updates
 

@@ -223,7 +223,7 @@ NCM_sample_prep_sim <- function(samplesize, local, source, correction = F,
 
 # Functions used to fit NCM # 
 # Occupancy-based fitting method
-fit_occ <- function(samplesize, neutral_data, remove_ones = T){
+fit_occ <- function(samplesize, neutral_data, remove_ones = T, verbose = F){
   # Inputs #
   # samplesize: otherwise called Ns in this code, read depth (# of reads in each sample) used to normalize the abundance tables
   # neutral_data: the list output from NCM_sample_prep()
@@ -241,12 +241,18 @@ fit_occ <- function(samplesize, neutral_data, remove_ones = T){
   require(boot)
   
   ndf <- neutral_data$neutral_df  # Data frame containing data for NCM fitting 
+  
+  # correction for species that occupy all samples 
+  if(remove_ones){
+    ndf <- ndf[ndf$local_frequency < 1, ]
+  }
+  
   Ns <- samplesize                # Sample depth 
   d <- 1/Ns                       # detection limit 
   freq <- ndf$local_frequency     # local community sample occupancies/occurrence frequencies
   p <- ndf$source_abundance       # source community abundances
   
-  print(paste("fitting params: sample size =", Ns, ", d =", d))
+  if(verbose) print(paste("fitting params: sample size =", Ns, ", d =", d))
   
   # Fit NCM using the occupancy-based method
   m.fit <- nlsLM(freq ~ pbeta(d, shape1 = Nsm*p, shape2 = Nsm*(1-p), lower.tail = F), 
@@ -282,7 +288,7 @@ fit_occ <- function(samplesize, neutral_data, remove_ones = T){
 }
 
 # Variance-based fitting method (accounts for multinomial sampling variance)
-fit_var <- function(samplesize, neutral_data, meta = F){
+fit_var <- function(samplesize, neutral_data, meta = F, verbose = F){
   # Inputs #
   # samplesize: read depth (# of reads in each sample) used to normalize the abundance tables, shorthand as 'Ns' in this function
   # neutral_data: the list output from NCM_sample_prep()
@@ -302,7 +308,7 @@ fit_var <- function(samplesize, neutral_data, meta = F){
   ndf <- neutral_data$neutral_df  # Data frame containing data for NCM fitting 
   Ns <- samplesize                # Sample depth 
   d <- 1/Ns                       # detection limit 
-  var <- ndf$target_variance      # local community relative abundance variances 
+  var <- ndf$local_variance      # local community relative abundance variances 
   p <- ndf$source_abundance       # source community abundances
 
     
@@ -317,11 +323,11 @@ fit_var <- function(samplesize, neutral_data, meta = F){
     varf <- var
   }
   
-  print(paste("fitting params: sample size =", Ns, ", d =", d))
+  if(verbose) print(paste("fitting params: sample size =", Ns, ", d =", d))
   
   # Fit NCM using the variance-based method
   m.fit <- nlsLM(varf ~ (pf*(1-pf)/(Nsm + 1)) + (pf*(1-pf)/(Ns)),
-                       lower = 0, start = list(Nsm = 1))
+                lower = 0, start = list(Nsm = 1))
   
   reg <- coef(m.fit)
   conf <- confint(m.fit)
@@ -408,7 +414,7 @@ fit_DMLL <- function(neutral_data, local, samplesize, plot = F, maxNTm = 1E12){
   # plot likelihood function 
   if(plot){
     Ntms <- 10 ^ seq(1, log10(maxNTm), length.out = 100)
-    LLs <- sapply(Ntms, loglik_ntm, local = local, neutral_data = neutral_data, N = N)
+    LLs <- sapply(Ntms, loglik_ntm, local = local, neutral_data = neutral_data, samplesize = samplesize)
     plot(x = Ntms, y = LLs, log = 'x')
     abline(v = fit_DMLL$maximum, col = "purple3")
   }
@@ -439,19 +445,20 @@ depth_profile_ncm <- function(ps_local, ps_source, samplesizes, reps, metacommun
       local_rare <- rarefy_even_depth(ps_local, sample.size = samplesizes[R], trimOTUs = F)
       source_rare <- rarefy_even_depth(ps_source, sample.size = samplesizes[R], trimOTUs = F)
       
-      neutral_data <- NCM_sample_prep(samplesize = samplesizes[R], local = local_rare, source = source_rare, correction = T,
-                                      verbose = F, meta = F)
-      ncm_occ <- fit_occ(samplesize = samplesizes[R], neutral_data = neutral_data, m_only = F)
+      neutral_data <- NCM_sample_prep(samplesize = samplesizes[R], ps_local = local_rare, ps_source = source_rare, 
+                                      correction = T, verbose = F, meta = F)
+      ncm_occ <- fit_occ(samplesize = samplesizes[R], neutral_data = neutral_data, remove_ones = T)
       results <- rbind(results, list(fit = ncm_occ$fitting_results[1], upper = ncm_occ$fitting_results[3], 
                                      lower = ncm_occ$fitting_results[2], shared_species = neutral_data$summary[1], 
                                      sample_size = samplesizes[R], source_samples = nsamples(source_rare),
                                      local_samples = nsamples(local_rare), method = "occupancy"))
-      ncm_var <- fit_var(samplesize = samplesizes[R], neutral_data = neutral_data, m_only = F, meta = metacommunity)
+      ncm_var <- fit_var(samplesize = samplesizes[R], neutral_data = neutral_data, meta = metacommunity)
       results <- rbind(results, list(fit = ncm_var$fitting_results[1], upper = ncm_var$fitting_results[3], 
                                      lower = ncm_var$fitting_results[2], shared_species = neutral_data$summary[1], 
                                      sample_size = samplesizes[R], source_samples = nsamples(source_rare),
                                      local_samples = nsamples(local_rare), method = "variance"))
-      ncm_LL  <- fit_DMLL(neutral_data = neutral_data, local = as.matrix(otu_table(local_rare)), N = samplesizes[R], plot = F)
+      ncm_LL  <- fit_DMLL(neutral_data = neutral_data, local = as.matrix(otu_table(local_rare)), 
+                          samplesize = samplesizes[R], plot = F)
       results <- rbind(results, list(fit = ncm_LL$maximum, upper = NA, 
                                      lower = NA, shared_species = neutral_data$summary[1], 
                                      sample_size = samplesizes[R], source_samples = nsamples(source_rare), 

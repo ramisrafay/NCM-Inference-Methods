@@ -4,7 +4,7 @@ This is companion code for the manuscript "How to quantify immigration from comm
 # 6th June 2026 Updates
 
 - Some bugs have recently been corrected in the "Function_definitions.R" file. 
-- A markdown tutorial for the inference code is available: Tutorial_NCM_v1.md
+- A markdown tutorial for the inference code is available: [Tutorial_NCM_v1.md](https://github.com/ramisrafay/NCM-Inference-Methods/blob/main/Tutorial_NCM_v1.md)
 
 # Steady state simulations 
 Code for fitting the neutral community models to abundance/sequence datasets and inferring immigration rates are available as R scripts. Running "Paper_simulations_figures.R" reproduces figures 2-5 in the main manuscript (Ensure that "Function_definitions.R" is also present in your working directory). 

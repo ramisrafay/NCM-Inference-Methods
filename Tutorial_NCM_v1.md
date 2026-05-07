@@ -1,4 +1,4 @@
-How to NCM
+NCM inference tutorial V1
 ================
 Ramis Rafay
 2026-05-06

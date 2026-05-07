@@ -186,7 +186,7 @@ where $p_i$ is the relative abundance of taxon $i$ in the source
 community, $m$ is the immigration probability, and $N_T$ is the
 effective community size.
 
-The expected occurrence probability above the detection threshold $D$
+The expected occurrence probability (i.e., sample occupancy) above the detection threshold $D$
 is:
 
 $$

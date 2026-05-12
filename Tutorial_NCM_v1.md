@@ -42,7 +42,25 @@ In general, the function is useful for answering questions such as:
 - Do the different inference methods converge toward similar estimates?
 - Is there a read depth above which the estimates become relatively
   stable?
+``` r
+# Load necessary function files 
+source("Function_definitions.R")
 
+# Load abundance dataset, here we will use the Zheng et. al dataset as an example
+ps_zheng <- readRDS("ps_zheng2019.RDS") # this is a phyloseq object
+
+# Delineate source community and local community samples
+zheng_source <- subset_samples(ps_zheng, sample_type == "IWW")
+zheng_local <- subset_samples(ps_zheng, sample_type == "AS")
+
+Ns <- round(logspace(log10(90000), log10(500), 10))
+
+
+zheng_profile_results <- depth_profile_ncm(ps_local = zheng_local, ps_source = zheng_source, 
+                                       samplesizes = Ns, reps = 3, metacommunity = F)
+
+head(zheng_profile_results)
+```
 <!-- -->
 
     ##         fit    upper     lower shared_species sample_size source_samples

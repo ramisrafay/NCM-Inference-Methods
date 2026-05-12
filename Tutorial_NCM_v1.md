@@ -109,8 +109,6 @@ ggplot(zheng_profile_results, aes(x = sample_size, y = fit)) +
   theme_bw()
 ```
 
-<img src="Tutorial_NCM_v1_files/figure-gfm/unnamed-chunk-2-1.png" style="display: block; margin: auto;" />
-
 ## Manually fitting each method and inspecting plots of each fit
 
 ### Preparing abundance datasets for NCM fitting and inference
@@ -249,7 +247,6 @@ plot_occupancy <- function(ndf_w_preds, title){
 plot_occupancy(zheng_occ_fit$ndf_w_preds, title = paste("Zheng occupancy fit, R =", samplesize))
 ```
 
-<img src="Tutorial_NCM_v1_files/figure-gfm/unnamed-chunk-4-1.png" style="display: block; margin: auto;" />
 
 ### Variance-based inference method
 
@@ -319,8 +316,6 @@ plot_variance <- function(ndf_w_preds, title){
 plot_variance(zheng_var_fit$ndf_w_preds, title = paste("Zheng variance fit, R =", samplesize))
 ```
 
-<img src="Tutorial_NCM_v1_files/figure-gfm/unnamed-chunk-5-1.png" style="display: block; margin: auto;" />
-
 ### Dirichlet multinomial log-likelihood method
 
 The Dirichlet multinomial log-likelihood method estimates $N_Tm$ by
@@ -366,4 +361,3 @@ zheng_DMLL_fit <- fit_DMLL(neutral_data = zheng_neutraldata, local = as.matrix(o
                            samplesize = samplesize, plot = T, maxNTm = 1E6)
 ```
 
-<img src="Tutorial_NCM_v1_files/figure-gfm/unnamed-chunk-6-1.png" style="display: block; margin: auto;" />
